@@ -2,7 +2,7 @@
 # Background
 * Some notes when study on https://github.com/dugsong/pypcap.git    
 * Me, once being a code typist, only familiar with C, A newbie for Python.
-* All the code run on the mac book pro, Sierra, Python 2.7. 'en4' is my usb ethernet device.
+* All the code run on the mac book pro, Sierra, Python 2.7. 'en4' is my usb ethernet device.'en0' is my wireless interface. 
 
 # Section 1
 The API from pcap.pyx, focus on the code
@@ -269,6 +269,7 @@ setnonblock, I think set the select parameters with nonblock, but the code in
  ```
 
  * Notes
+   
    the different between pcap_loop and pcap_dispatch，I think pcap_loop use
    method of next to loop till loopbreak or some exceptions,
    attention if no packets, it will not break the loop. But pcap_dispatch

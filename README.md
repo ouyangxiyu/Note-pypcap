@@ -4,7 +4,6 @@
 * Me, once being a code typist, only familiar with C, A newbie for Python.
 * All the code run on the mac book pro, Sierra, Python 2.7. 'en4' is my usb ethernet device.
 
-
 # Section 1
 The API from pcap.pyx, focus on the code
 
@@ -15,15 +14,19 @@ The API from pcap.pyx, focus on the code
   in pypcap just return the name[], not as in libpcap, return the struct pcap_if_t
 
 * Code
+
 ```
     print ("The interfaces in the system are:")
     devs = pcap.findalldevs()
     print devs
 ```
+
 * Output
+
 ```
     ['bridge0', 'utun0', 'en1', 'utun1', 'en2', 'en4', 'lo0', 'en0', 'gif0', 'stf0', 'p2p0', 'awdl0']
 ```
+
 * Notes
 
   maybe used to find and choose which interface to capture the packets  
@@ -35,15 +38,19 @@ The API from pcap.pyx, focus on the code
   return the first valid interface to capture the packets
 
 * Code
+
 ```
     print ("The first interface in the system is:")
     dev = pcap.lookupdev()
     print dev
 ```
+
 * Output
+
 ```
     bridge0
 ```
+
 * Notes
 
   if you call pcap.pcap(), and no packets are output, you should first check which
@@ -54,14 +61,18 @@ The API from pcap.pyx, focus on the code
   nothing, libpcap has no such API
 
 * Code
+
 ```
 dev = pcap.ex_name('en4')
 print dev
 ```
+
 * Output
+
 ```
 en4
 ```
+
 * Notes
   from the code, pcap_ex.c, this api only for wincap, so just ignore it for now.
 
@@ -73,30 +84,35 @@ en4
     return the net_address and mask_address, but not the gateway_address
   * Code-1
 
-    ```
+```
      p = pcap.lookupnet('en4')
      print p
-     ```
+```
 
   * Output-1
-    ```
+    
+```
     ('\xc0\xa8\xc1\x00', '\xff\xff\xff\x00')
-    ```
+```
 
   * Code-2
-    ```
+
+```
     netp,maskp = pcap.lookupnet('en4')
     a = struct.unpack('BBBB',netp)
     b = struct.unpack('BBBB', maskp)
 
     print "Net_addr: %d.%d.%d.%d" %(a[0],a[1],a[2],a[3])
     print "Msk_addr: %d.%d.%d.%d" %(b[0],b[1],b[2],b[3])
-    ```
+```    
+
   * Output-2
-    ```
+    
+```
     Net_addr: 192.168.193.0
     Msk_addr: 255.255.255.0
-    ```
+```
+
   * Notes
     Not as libpcap, return a packed struct, contains net_address and mask_address
     If wanna print it as a IP address format, I think the code-2 is easy to
@@ -108,26 +124,31 @@ en4
    but there is no such API in libpcap.
    in my opinion，it should be pcap_open_live()
    http://www.tcpdump.org/manpages/pcap_open_live.3pcap.html
+
 * Code-1
 
-  ```
+```
   p = pcap.pcap('en4')
   print p
-  ```
+```
+
 * Output-1
-  ```
+
+```
   <pcap.pcap object at 0x10391c4f0>
-  ```
+```
+
 * Code-2
 
-  ```
+```
   p = pcap.pcap('en4')
   for timestamp, buf in p:
       print 'Timestamp: ', str(datetime.datetime.utcfromtimestamp(timestamp))
       #print some pkt
-  ```
+```
 * Output-2
-  ```
+
+```
   <pcap.pcap object at 0x108c434f0>
   Timestamp:  2016-12-13 06:25:13.815806
   Timestamp:  2016-12-13 06:25:13.815982
@@ -142,9 +163,11 @@ en4
     File "pcap.pyx", line 384, in pcap.pcap.__next__ (pcap.c:4108)
       raise KeyboardInterrupt
   KeyboardInterrupt
-  ```
+```
+
 * Code-3
-  ```
+
+```
   p = pcap.pcap('bridge0')
   print p.getnonblock()
   print p.__next__()
@@ -152,9 +175,10 @@ en4
   for timestamp,buf in p:
       print 'Timestamp: ', str(datetime.datetime.utcfromtimestamp(timestamp))
       time.sleep(1)
-  ```
+```
 
 * Output-3
+
 ```
 Password:
 False
@@ -163,6 +187,7 @@ False
 ```
 
 * Code-4
+
 ```
   p = pcap.pcap('bridge0')
   p.setnonblock()
@@ -174,7 +199,9 @@ False
       print 'Timestamp: ', str(datetime.datetime.utcfromtimestamp(timestamp))
       time.sleep(1)
 ```
+
 * Output-4
+
 ```
 True
 None
@@ -192,7 +219,7 @@ TypeError: 'NoneType' object is not iterable
    in For,as "pcap", should call the method "next" for iterative, so it will
    output the packet until "KeyboardInterrupt" or other exceptions.
    But there are some question still unresolved as：
-   ** setnonblock, I think set the select parameters with nonblock, but the code in
+setnonblock, I think set the select parameters with nonblock, but the code in
       pcap_ex.c, struct timeval tv = { 1, 0 }, so it seems work as nonblock always.
       in pcap.c there are some codes for setnonblock, still do not understand how
       it works. [Please help]
@@ -201,7 +228,7 @@ TypeError: 'NoneType' object is not iterable
    you can use any iterative methods to get all the packets. as "For" or "pcap_loop" or "pcap_dispath"
 
 
- ## pcap_dispath/pcap_loop
+## pcap_dispath/pcap_loop
  * Description  
    http://www.tcpdump.org/manpages/pcap_loop.3pcap.html
 
@@ -209,18 +236,16 @@ TypeError: 'NoneType' object is not iterable
 
  ```
  n = 0
- 
+
  def pkt_cb(tv, pkt, arg):
      print "Got a packet"
      print 'Timestamp: ', str(datetime.datetime.utcfromtimestamp(tv))
      global n
      n = n + 1
 
-
  def main():
 
      p = pcap.pcap('en0')
-
 
      try:
          pcap.pcap.dispatch(p, 0, pkt_cb, 0)
@@ -228,8 +253,6 @@ TypeError: 'NoneType' object is not iterable
      except:
          print n
  ```
-
-
 
  * Output
 
@@ -250,3 +273,5 @@ TypeError: 'NoneType' object is not iterable
    method of next to loop till loopbreak or some exceptions,
    attention if no packets, it will not break the loop. But pcap_dispatch
    will break when no more packets arrived.
+
+
